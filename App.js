@@ -27,14 +27,14 @@ import {
 import Geolocation from '@react-native-community/geolocation';
 
 const io = require("socket.io-client");
-const socket = io("ws://------------:----");
- 
+const socket = io("ws://------------:----"); 
+
 const isGPSSent = false;
 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter']);
 
-var gpsButtonC = '#44f';
+var gpsButtonC = '#55f';
 
 function setGpsButtonColor(c) {
 	gpsButtonC=c;
@@ -70,6 +70,8 @@ var setScene2ColG;
 var setSceneMixColG;
 var setIntroColG;
 var setExtroColG;
+var setSrt1ColG;
+var setSrt2ColG;
 
 var mapOn = false;
 const socketMap = () => {
@@ -233,6 +235,7 @@ const socketExtro = () => {
 const socketShot = () => {
 }
 socket.on('state', (state) => {
+	if(!setScene1ColG) return;
 	if(state.sceneMode == 1){
 		sceneMode=1;
 		setScene1ColG('#070');
@@ -270,12 +273,57 @@ socket.on('state', (state) => {
 		setIntroColG('#55f');
 		setExtroColG('#55f');
 	}
+
 	if(state.map){
 		mapOn=true;
 		setMapColG('#070');
 	}else{
 		mapOn=false;
 		setMapColG('#55f');
+	}
+
+	if(state.rec){
+		recOn=true;
+		setRecColG('#070');
+	}else{
+		recOn=false;
+		setRecColG('#55f');
+	}
+
+	if(state.rtmp1){
+		rtmp1On=true;
+		setrtmp1ColG('#070');
+	}else{
+		rtmp1On=false;
+		setrtmp1ColG('#55f');
+	}
+
+	if(state.rtmp2){
+		rtmp2On=true;
+		setrtmp2ColG('#070');
+	}else{
+		rtmp2On=false;
+		setrtmp2ColG('#55f');
+	}
+
+	if(state.rtmp3){
+		rtmp3On=true;
+		setrtmp3ColG('#070');
+	}else{
+		rtmp3On=false;
+		setrtmp3ColG('#55f');
+	}
+
+	if(state.srt1){
+		setSrt1ColG('#070');
+	}else{
+		setSrt1ColG('#55f');
+	}
+
+	if(state.srt2){
+		setSrt2ColG('#070');
+	}else{
+		setSrt2ColG('#55f');
 	}
 	console.log(JSON.stringify(state));
 });
@@ -391,31 +439,33 @@ const App: () => Node = () => {
   setIntroColG=function(c){setIntroCol(c)};
   const [extrocol, setExtroCol] = useState('#55f');
   setExtroColG=function(c){setExtroCol(c)};
+  const [srt1col, setSrt1Col] = useState('#55f');
+  setSrt1ColG=function(c){setSrt1Col(c)};
+  const [srt2col, setSrt2Col] = useState('#55f');
+  setSrt2ColG=function(c){setSrt2Col(c)};
+	
+  //if(socket.connected) socket.emit('getState');
 
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{margin:1}}>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white, padding:1
-          }}>
-	      <Pressable 
-          	style={{    
-			  alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 12,
-              paddingHorizontal: 32,
-              borderRadius: 4,
-              elevation: 3,
-			  backgroundColor:counter
-			}}
-		    onPress={requestLocationPermission}
-		  >
-		    <Text style={styles.text}>{gpsText}</Text>
-		  </Pressable>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" style={{margin:1}}>
+		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
+		  <View style={{ flex: 1,padding:1 }}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 32,borderRadius: 14,elevation: 3,backgroundColor:counter}} onPress={requestLocationPermission}>
+		      <Text style={styles.text}>{gpsText}</Text>
+		    </Pressable>
+		  </View>
+          <View style={{ flex: 1 ,padding:1}}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:srt1col}}>
+		      <Text style={styles.text}>SRT1</Text>
+		    </Pressable>
+		  </View>
+      	  <View style={{ flex: 1, padding:1 }}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:srt2col}}>
+		      <Text style={styles.text}>SRT2</Text>
+		    </Pressable>
+		  </View>
         </View>
 		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
 		  <View style={{ flex: 1,padding:1 }}>
@@ -424,63 +474,63 @@ const App: () => Node = () => {
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:'#55f'}} onPress={socketMapClear}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:'#55f'}} onPress={socketMapClear}>
 		      <Text style={styles.text}>Clear</Text>
 		    </Pressable>
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:reccol}} onPress={socketRec}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:reccol}} onPress={socketRec}>
 		      <Text style={styles.text}>Rec</Text>
 		    </Pressable>
 		  </View>
         </View>
 		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
 		  <View style={{ flex: 1,padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:rtmp1col}} onPress={socketRtmp1}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:rtmp1col}} onPress={socketRtmp1}>
 		      <Text style={styles.text}>RTMP1</Text>
 		    </Pressable>
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:rtmp2col}} onPress={socketRtmp2}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:rtmp2col}} onPress={socketRtmp2}>
 		      <Text style={styles.text}>RTMP2</Text>
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:rtmp3col}} onPress={socketRtmp3}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:rtmp3col}} onPress={socketRtmp3}>
 		      <Text style={styles.text}>RTMP3</Text>
 		    </Pressable>
 		  </View>
         </View>
 		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
 		  <View style={{ flex: 1,padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:scene1col}} onPress={socketScene1}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:scene1col}} onPress={socketScene1}>
 		      <Text style={styles.text}>1</Text>
 		    </Pressable>
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:scene2col}} onPress={socketScene2}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:scene2col}} onPress={socketScene2}>
 		      <Text style={styles.text}>2</Text>
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:sceneMixcol}} onPress={socketSceneMix}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:sceneMixcol}} onPress={socketSceneMix}>
 		      <Text style={styles.text}>Mix</Text>
 		    </Pressable>
 		  </View>
         </View>
 		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
 		  <View style={{ flex: 1,padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:introcol}} onPress={socketIntro}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:introcol}} onPress={socketIntro}>
 		      <Text style={styles.text}>Intro</Text>
 		    </Pressable>
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:extrocol}} onPress={socketExtro}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:extrocol}} onPress={socketExtro}>
 		      <Text style={styles.text}>Extro</Text>
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 4,elevation: 3,backgroundColor:'#55f'}} onPress={socketShot}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 12,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:'#55f'}} onPress={socketShot}>
 		      <Text style={styles.text}>Shot</Text>
 		    </Pressable>
 		  </View>
