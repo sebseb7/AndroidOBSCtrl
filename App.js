@@ -68,6 +68,8 @@ var gps_active = false;
 var setMapColG;
 var setMap2ColG;
 var setRecColG;
+var setClearColG;
+var setClear2ColG;
 var setrtmp1ColG;
 var setrtmp2ColG;
 var setrtmp3ColG;
@@ -75,13 +77,17 @@ var setScene1ColG;
 var setScene2ColG;
 var setSceneMixColG;
 var setSceneMix1ColG;
+var setSceneMixNoneColG;
 var setSceneMix2ColG;
 var setIntroColG;
 var setExtroColG;
 var setSrt1ColG;
 var setSrt2ColG;
 var setImgUriG;
+var setImg2UriG;
+var setTweetColG;
 var setInfoTextG;
+var setRtmp2TextG;
 var srt1on = false;
 var srt2on = false;
 var mapOn = false;
@@ -120,14 +126,58 @@ const socketMap2 = () => {
 		}
 	}
 }
+var clearPress = false;
+var clear2Press = false;
 const socketMapClear = () => {
-	if(socket.connected){
+	if(!clearPress){
+		setClearColG('#f55');
+		clearPress=true;
+		setTimeout(()=>{
+			if(clearPress){
+				setClearColG('#55f');
+				clearPress=false;
+			}
+		},2000);
+	}
+	else if(socket.connected){
+		clearPress=false;
+		setClearColG('#55f');
 		socket.emit('clear3',uniqueId);
 	}
 }
 const socketMap2Clear = () => {
-	if(socket.connected){
+	if(!clear2Press){
+		setClear2ColG('#f55');
+		clear2Press=true;
+		setTimeout(()=>{
+			if(clear2Press){
+				setClear2ColG('#55f');
+				clear2Press=false;
+			}
+		},2000);
+	}
+	else if(socket.connected){
+		clear2Press=false;
+		setClear2ColG('#55f');
 		socket.emit('clear2',uniqueId);
+	}
+}
+var tweetPress = false;
+const socketTweet = () => {
+	if(!tweetPress){
+		setTweetColG('#f55');
+		tweetPress=true;
+		setTimeout(()=>{
+			if(tweetPress){
+				setTweetColG('#55f');
+				tweetPress=false;
+			}
+		},2000);
+	}
+	else if(socket.connected){
+		socket.emit('tweet');
+		tweetPress=false;
+		setTweetColG('#55f');
 	}
 }
 var recPress = false;
@@ -297,6 +347,7 @@ const socketScene1 = () => {
 			setSceneMixColG('#55f');
 			setSceneMix1ColG('#55f');
 			setSceneMix2ColG('#55f');
+			setSceneMixNoneColG('#55f');
 		}
 	}
 }
@@ -310,6 +361,7 @@ const socketScene2 = () => {
 			setSceneMixColG('#55f');
 			setSceneMix1ColG('#55f');
 			setSceneMix2ColG('#55f');
+			setSceneMixNoneColG('#55f');
 		}
 	}
 }
@@ -323,6 +375,7 @@ const socketSceneMix = () => {
 			setSceneMixColG('#070');
 			setSceneMix1ColG('#55f');
 			setSceneMix2ColG('#55f');
+			setSceneMixNoneColG('#55f');
 		}
 	}
 }
@@ -336,6 +389,7 @@ const socketSceneMix1 = () => {
 			setSceneMixColG('#55f');
 			setSceneMix1ColG('#070');
 			setSceneMix2ColG('#55f');
+			setSceneMixNoneColG('#55f');
 		}
 	}
 }
@@ -349,6 +403,21 @@ const socketSceneMix2 = () => {
 			setSceneMixColG('#55f');
 			setSceneMix1ColG('#55f');
 			setSceneMix2ColG('#070');
+			setSceneMixNoneColG('#55f');
+		}
+	}
+}
+const socketSceneMixNone = () => {
+	if(sceneMode!=4){
+		if(socket.connected){
+			socket.emit('sceneMixNone',uniqueId);
+			sceneMode=4;
+			setScene1ColG('#55f');
+			setScene2ColG('#55f');
+			setSceneMixColG('#55f');
+			setSceneMix1ColG('#55f');
+			setSceneMix2ColG('#55f');
+			setSceneMixNoneColG('#070');
 		}
 	}
 }
@@ -397,9 +466,18 @@ const socketShot = () => {
 	socket.emit('getState',uniqueId);
 	setImgUriG('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAADYCAIAAAB3M0NIAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TxSItInYQcchQnayIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi6OSk6CIl/i8ptIjx4Lgf7+497t4BQqPCVLNrAlA1y0jFY2I2tyr2vEJAAP0YR0hipp5IL2bgOb7u4ePrXZRneZ/7c4SUvMkAn0g8x3TDIt4gntm0dM77xGFWkhTic+Ixgy5I/Mh12eU3zkWHBZ4ZNjKpeeIwsVjsYLmDWclQiaeJI4qqUb6QdVnhvMVZrdRY6578hcG8tpLmOs1hxLGEBJIQIaOGMiqwEKVVI8VEivZjHv4hx58kl0yuMhg5FlCFCsnxg//B727NwtSkmxSMAd0vtv0xAvTsAs26bX8f23bzBPA/A1da219tALOfpNfbWuQI6NsGLq7bmrwHXO4Ag0+6ZEiO5KcpFArA+xl9Uw4YuAV619zeWvs4fQAy1NXyDXBwCIwWKXvd492Bzt7+PdPq7wdmHHKiSMerMAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YCCBEvCyuXARIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAABEElEQVR42u3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgLcB62UAATGAzeEAAAAASUVORK5CYII=');
 }
+const socketAudioLevel = () => {
+	socket.emit('getAudioLevel',uniqueId);
+	setImg2UriG('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAADYCAIAAAB3M0NIAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TxSItInYQcchQnayIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi6OSk6CIl/i8ptIjx4Lgf7+497t4BQqPCVLNrAlA1y0jFY2I2tyr2vEJAAP0YR0hipp5IL2bgOb7u4ePrXZRneZ/7c4SUvMkAn0g8x3TDIt4gntm0dM77xGFWkhTic+Ixgy5I/Mh12eU3zkWHBZ4ZNjKpeeIwsVjsYLmDWclQiaeJI4qqUb6QdVnhvMVZrdRY6578hcG8tpLmOs1hxLGEBJIQIaOGMiqwEKVVI8VEivZjHv4hx58kl0yuMhg5FlCFCsnxg//B727NwtSkmxSMAd0vtv0xAvTsAs26bX8f23bzBPA/A1da219tALOfpNfbWuQI6NsGLq7bmrwHXO4Ag0+6ZEiO5KcpFArA+xl9Uw4YuAV619zeWvs4fQAy1NXyDXBwCIwWKXvd492Bzt7+PdPq7wdmHHKiSMerMAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YCCBEvCyuXARIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAABEElEQVR42u3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgLcB62UAATGAzeEAAAAASUVORK5CYII=');
+}
 socket.on('shot', (data,id) => {
 	if(id == null || uniqueId == id) {
 		setImgUriG(data);
+	}
+});
+socket.on('audioLevel', (data,id) => {
+	if(id == null || uniqueId == id) {
+		setImg2UriG(data);
 	}
 });
 var currentBy;
@@ -409,12 +487,16 @@ socket.on('infoText', (data,by) => {
 	currentBy = by;
 	currentText = data;
 	if(socket.connected){
-		socket.emit('respond','delivered: '+data,by);
+		if(by)socket.emit('respond','delivered: '+data,by);
 	}
+});
+socket.on('ytCount', (data) => {
+	console.log(data);
+	setRtmp2TextG(data);
 });
 const confirmText = () => {
 	if(currentBy && currentText && socket.connected){
-		socket.emit('respond','confirmed: '+currentText,currentBy);
+		if(currentBy) socket.emit('respond','confirmed: '+currentText,currentBy);
 	}
 }
 
@@ -443,6 +525,7 @@ socket.on('state', (state,reply,id) => {
 		setSceneMixColG('#55f');
 		setSceneMix1ColG('#55f');
 		setSceneMix2ColG('#55f');
+		setSceneMixNoneColG('#55f');
 	}
 	else if(state.sceneMode == 2){
 		sceneMode=2;
@@ -451,6 +534,7 @@ socket.on('state', (state,reply,id) => {
 		setSceneMixColG('#55f');
 		setSceneMix1ColG('#55f');
 		setSceneMix2ColG('#55f');
+		setSceneMixNoneColG('#55f');
 	}
 	else if(state.sceneMode == 3){
 		sceneMode=3;
@@ -459,6 +543,7 @@ socket.on('state', (state,reply,id) => {
 		setSceneMixColG('#070');
 		setSceneMix1ColG('#55f');
 		setSceneMix2ColG('#55f');
+		setSceneMixNoneColG('#55f');
 	}
 	else if(state.sceneMode == 31){
 		sceneMode=3;
@@ -467,6 +552,7 @@ socket.on('state', (state,reply,id) => {
 		setSceneMixColG('#55f');
 		setSceneMix1ColG('#070');
 		setSceneMix2ColG('#55f');
+		setSceneMixNoneColG('#55f');
 	}
 	else if(state.sceneMode == 32){
 		sceneMode=3;
@@ -475,6 +561,16 @@ socket.on('state', (state,reply,id) => {
 		setSceneMixColG('#55f');
 		setSceneMix1ColG('#55f');
 		setSceneMix2ColG('#070');
+		setSceneMixNoneColG('#55f');
+	}
+	else if(state.sceneMode == 4){
+		sceneMode=4;
+		setScene1ColG('#55f');
+		setScene2ColG('#55f');
+		setSceneMixColG('#55f');
+		setSceneMix1ColG('#55f');
+		setSceneMix2ColG('#55f');
+		setSceneMixNoneColG('#070');
 	}
 
 	if(state.mode == 'intro'){
@@ -657,6 +753,10 @@ const App: () => Node = () => {
   setMap2ColG=function(c){setMap2Col(c)};
   const [reccol, setRecCol] = useState('#55f');
   setRecColG=function(c){setRecCol(c)};
+  const [clearcol, setClearCol] = useState('#55f');
+  setClearColG=function(c){setClearCol(c)};
+  const [clear2col, setClear2Col] = useState('#55f');
+  setClear2ColG=function(c){setClear2Col(c)};
   const [rtmp1col, setRtmp1Col] = useState('#55f');
   setrtmp1ColG=function(c){setRtmp1Col(c)};
   const [rtmp2col, setRtmp2Col] = useState('#55f');
@@ -671,6 +771,8 @@ const App: () => Node = () => {
   setSceneMixColG=function(c){setSceneMixCol(c)};
   const [sceneMix1col, setSceneMix1Col] = useState('#55f');
   setSceneMix1ColG=function(c){setSceneMix1Col(c)};
+  const [sceneMixNonecol, setSceneMixNoneCol] = useState('#55f');
+  setSceneMixNoneColG=function(c){setSceneMixNoneCol(c)};
   const [sceneMix2col, setSceneMix2Col] = useState('#55f');
   setSceneMix2ColG=function(c){setSceneMix2Col(c)};
   const [introcol, setIntroCol] = useState('#55f');
@@ -681,11 +783,17 @@ const App: () => Node = () => {
   setSrt1ColG=function(c){setSrt1Col(c)};
   const [srt2col, setSrt2Col] = useState('#55f');
   setSrt2ColG=function(c){setSrt2Col(c)};
+  const [tweetcol, setTweetCol] = useState('#55f');
+  setTweetColG=function(c){setTweetCol(c)};
   const [infoText, setInfoText] = useState('');
   setInfoTextG=function(c){setInfoText(c)};
+  const [rtmp2Text, setRtmp2Text] = useState('RTMP2');
+  setRtmp2TextG=function(c){setRtmp2Text(c)};
 	
   const [imgUri, setImgUri] = useState('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAADYCAIAAAB3M0NIAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TxSItInYQcchQnayIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi6OSk6CIl/i8ptIjx4Lgf7+497t4BQqPCVLNrAlA1y0jFY2I2tyr2vEJAAP0YR0hipp5IL2bgOb7u4ePrXZRneZ/7c4SUvMkAn0g8x3TDIt4gntm0dM77xGFWkhTic+Ixgy5I/Mh12eU3zkWHBZ4ZNjKpeeIwsVjsYLmDWclQiaeJI4qqUb6QdVnhvMVZrdRY6578hcG8tpLmOs1hxLGEBJIQIaOGMiqwEKVVI8VEivZjHv4hx58kl0yuMhg5FlCFCsnxg//B727NwtSkmxSMAd0vtv0xAvTsAs26bX8f23bzBPA/A1da219tALOfpNfbWuQI6NsGLq7bmrwHXO4Ag0+6ZEiO5KcpFArA+xl9Uw4YuAV619zeWvs4fQAy1NXyDXBwCIwWKXvd492Bzt7+PdPq7wdmHHKiSMerMAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YCCBEvCyuXARIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAABEElEQVR42u3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgLcB62UAATGAzeEAAAAASUVORK5CYII=');
+  const [img2Uri, setImg2Uri] = useState('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAADYCAIAAAB3M0NIAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TxSItInYQcchQnayIijhKFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi6OSk6CIl/i8ptIjx4Lgf7+497t4BQqPCVLNrAlA1y0jFY2I2tyr2vEJAAP0YR0hipp5IL2bgOb7u4ePrXZRneZ/7c4SUvMkAn0g8x3TDIt4gntm0dM77xGFWkhTic+Ixgy5I/Mh12eU3zkWHBZ4ZNjKpeeIwsVjsYLmDWclQiaeJI4qqUb6QdVnhvMVZrdRY6578hcG8tpLmOs1hxLGEBJIQIaOGMiqwEKVVI8VEivZjHv4hx58kl0yuMhg5FlCFCsnxg//B727NwtSkmxSMAd0vtv0xAvTsAs26bX8f23bzBPA/A1da219tALOfpNfbWuQI6NsGLq7bmrwHXO4Ag0+6ZEiO5KcpFArA+xl9Uw4YuAV619zeWvs4fQAy1NXyDXBwCIwWKXvd492Bzt7+PdPq7wdmHHKiSMerMAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YCCBEvCyuXARIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAABEElEQVR42u3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgLcB62UAATGAzeEAAAAASUVORK5CYII=');
   setImgUriG=function(c){setImgUri(c)};
+  setImg2UriG=function(c){setImg2Uri(c)};
   //if(socket.connected) socket.emit('getState');
 
   return (
@@ -721,30 +829,35 @@ const App: () => Node = () => {
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:'#55f'}} onPress={socketMapClear}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:clearcol}} onPress={socketMapClear}>
 		      <Text style={styles.text}>Clear</Text>
 		    </Pressable>
 		  </View>
-		  <View style={{ flex: 1,padding:1 }}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:introcol}} onPress={socketIntro}>
-		      <Text style={styles.text}>Intro</Text>
-		    </Pressable>
-		  </View>
-		</View>
-		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
 		  <View style={{ flex: 1,padding:1 }}>
 	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:map2col}} onPress={socketMap2}>
 		      <Text style={styles.text}>Map2</Text>
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:'#55f'}} onPress={socketMap2Clear}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:clear2col}} onPress={socketMap2Clear}>
 		      <Text style={styles.text}>Clear2</Text>
+		    </Pressable>
+		  </View>
+		</View>
+		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
+		  <View style={{ flex: 1,padding:1 }}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:introcol}} onPress={socketIntro}>
+		      <Text style={styles.text}>Intro</Text>
 		    </Pressable>
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
 	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:extrocol}} onPress={socketExtro}>
 		      <Text style={styles.text}>Extro</Text>
+		    </Pressable>
+		  </View>
+      	  <View style={{ flex: 1, padding:1 }}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:tweetcol}} onPress={socketTweet}>
+		      <Text style={styles.text}>Tweet</Text>
 		    </Pressable>
 		  </View>
         </View>
@@ -756,12 +869,17 @@ const App: () => Node = () => {
 		  </View>
       	  <View style={{ flex: 1, padding:1 }}>
 	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:rtmp2col}} onPress={socketRtmp2}>
-		      <Text style={styles.text}>RTMP2</Text>
+		      <Text style={styles.text}>{rtmp2Text}</Text>
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
 	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:rtmp3col}} onPress={socketRtmp3}>
 		      <Text style={styles.text}>RTMP3</Text>
+		    </Pressable>
+		  </View>
+          <View style={{ flex: 1 ,padding:1}}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:reccol}} onPress={socketRec}>
+		      <Text style={styles.text}>Rec</Text>
 		    </Pressable>
 		  </View>
         </View>
@@ -794,8 +912,8 @@ const App: () => Node = () => {
 		    </Pressable>
 		  </View>
           <View style={{ flex: 1 ,padding:1}}>
-	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:reccol}} onPress={socketRec}>
-		      <Text style={styles.text}>Rec</Text>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 2,paddingHorizontal: 0,borderRadius: 14,elevation: 3,backgroundColor:sceneMixNonecol}} onPress={socketSceneMixNone}>
+		      <Text style={styles.text}>None</Text>
 		    </Pressable>
 		  </View>
         </View>
@@ -805,6 +923,16 @@ const App: () => Node = () => {
 					style={{width: 198,height: 108}}
 					source={{
 						uri: imgUri
+					}}
+				/>
+		    </Pressable>
+        </View>
+		<View style={{backgroundColor: isDarkMode ? Colors.black : Colors.white,flexDirection: "row",flex:1}}>
+	        <Pressable style={{alignItems: 'center',justifyContent: 'center',paddingVertical: 0,paddingHorizontal: 0,borderRadius: 0,elevation: 0}} onPress={socketAudioLevel}>
+				<Image
+					style={{width: 198,height: 108}}
+					source={{
+						uri: img2Uri
 					}}
 				/>
 		    </Pressable>
